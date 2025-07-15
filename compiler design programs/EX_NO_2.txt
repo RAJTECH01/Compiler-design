@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+char vars[100][100];
+int vcnt = 0;
+char input[1000], c;
+char token[50];
+int tlen = 0;
+int state = 0, pos = 0, i = 0;
+char *getAddress(char str[]) {
+    for (i = 0; i < vcnt; i++)
+        if (strcmp(str, vars[i]) == 0)
+            return vars[i];
+    strcpy(vars[vcnt], str);
+    return vars[vcnt++];
+}
+int isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^');
+}
+int main(void) {
+    printf("Enter the Input String: ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0'; 
+    do {
+        c = input[pos];
+        switch (state) {
+            case 0:
+                if (isspace(c)) {
+                } else if (isalpha(c)) {
+                    token[0] = c;
+                    tlen = 1;
+                    state = 1;
+                } else if (isdigit(c)) {
+                    token[0] = c;
+                    tlen = 1;
+                    state = 2;
+                } else if (isOperator(c)) {
+                    state = 3;
+                } else if (c == ';') {
+                    printf("Special Token: <3,3> ;\n");
+                } else if (c == '=') {
+                    printf("Assignment Token: <4,4> =\n");
+                }
+                break;
+            case 1:
+                if (!isalnum(c)) {
+                    token[tlen] = '\0';
+                    printf("Identifier Token: <1, %p> %s\n", getAddress(token), token);
+                    state = 0;
+                    pos--;  
+                } else {
+                    token[tlen++] = c;
+                }
+                break;
+            case 2:  
+                if (!isdigit(c)) {
+                    token[tlen] = '\0';
+                    printf("Constant Token: <2, %s>\n", token);
+                    state = 0;
+                    pos--;
+                } else {
+                    token[tlen++] = c;
+                }
+                break;
+            case 3: 
+                printf("Operator Token: <op, %c>\n", c);
+                state = 0;
+                break;
+        }
+        pos++;
+    } while (c != '\0');
+
+    return 0;
+}
