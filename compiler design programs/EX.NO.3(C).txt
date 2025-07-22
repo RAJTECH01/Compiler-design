@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <string.h>
+
+int main()
+{
+    FILE *file;
+    char line[1000];
+    int insideComment = 0;
+    int insideString = 0;
+    int insideCharacter = 0;
+    file = fopen("sample.c", "r");
+    if (file == NULL) {
+        printf("Unable to open the file.\n");
+        return 1;
+    }
+    printf("Valid Control Structures:\n");
+    while (fgets(line, sizeof(line), file) != NULL) {
+        for (int i = 0; line[i] != '\0'; i++) {
+            if (!insideComment && line[i] == '/' && line[i + 1] == '*') {
+                insideComment = 1;
+                i++;
+                continue;
+            }
+            if (insideComment && line[i] == '*' && line[i + 1] == '/') {
+                insideComment = 0;
+                i++;
+                continue;
+            }
+            if (insideComment)
+                continue;
+            if (line[i] == '/' && line[i + 1] == '/') {
+                break;    
+            }
+            if (line[i] == '"' && !insideCharacter) {
+                insideString = !insideString;
+                continue;
+            }
+            if (line[i] == '\'' && !insideString) {
+                insideCharacter = !insideCharacter;
+                continue;
+            }
+            if (insideString || insideCharacter)
+                continue;
+            #define IS_WORD_CHAR(c) ( ((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= '0' && (c) <= '9') || (c) == '_')
+            int pos = i;
+            if (strncmp(line + pos, "else if", 7) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 7]))
+            {
+                printf("Else-if statement: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "for", 3) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 3]))
+            {
+                printf("For loop: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "while", 5) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 5]))
+            {
+                printf("While loop: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "if", 2) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 2]))
+            {
+                printf("If statement: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "else", 4) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 4]))
+            {
+                printf("Else statement: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "switch", 6) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 6]))
+            {
+                printf("Switch statement: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "case", 4) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 4]))
+            {
+                printf("Case label: %s", line);
+                break;
+            }
+            else if (strncmp(line + pos, "default", 7) == 0 &&
+                (pos == 0 || !IS_WORD_CHAR(line[pos - 1])) &&
+                !IS_WORD_CHAR(line[pos + 7]))
+            {
+                printf("Default label: %s", line);
+                break;
+            }
+        }
+    }
+
+    fclose(file);
+    return 0;
+}
